@@ -8,7 +8,6 @@ module DataMapper
 
     module ClassMethods
       def has_geographic_location(name, options = {})
-        return if self.included_modules.include?(DataMapper::GeoKit::InstanceMethods)
         send :include, InstanceMethods
         send :include, ::GeoKit::Mappable
 
@@ -23,7 +22,6 @@ module DataMapper
           end
         end
 
-        DataMapper.auto_upgrade!
 
         if options[:auto_geocode] == true or options[:auto_geocode].nil?
           define_method :auto_geocode? do
@@ -104,9 +102,9 @@ module DataMapper
         def sphere_distance_sql(field, origin, units)
           lat = deg2rad(origin.lat)
           lng = deg2rad(origin.lng)
-          qualified_lat_column = "`#{storage_name}`.`#{field}_lat`"
-          qualified_lng_column = "`#{storage_name}`.`#{field}_lng`"
-          "(ACOS(least(1,COS(#{lat})*COS(#{lng})*COS(RADIANS(#{qualified_lat_column}))*COS(RADIANS(#{qualified_lng_column}))+COS(#{lat})*SIN(#{lng})*COS(RADIANS(#{qualified_lat_column}))*SIN(RADIANS(#{qualified_lng_column}))+SIN(#{lat})*SIN(RADIANS(#{qualified_lat_column}))))*#{units_sphere_multiplier(units)})"
+          qualified_lat_column = "#{field}_lat"
+          qualified_lng_column = "#{field}_lng"
+          "(ACOS(LEAST(1,COS(#{lat})*COS(#{lng})*COS(RADIANS(#{qualified_lat_column}))*COS(RADIANS(#{qualified_lng_column}))+COS(#{lat})*SIN(#{lng})*COS(RADIANS(#{qualified_lat_column}))*SIN(RADIANS(#{qualified_lng_column}))+SIN(#{lat})*SIN(RADIANS(#{qualified_lat_column}))))*#{units_sphere_multiplier(units)})"
         end
 
         # in case conditions were altered by other means
@@ -134,7 +132,7 @@ module DataMapper
           if fields.is_a?(Array) # user specified fields, just tack this onto the end
             [f] + fields
           else # otherwise since we specify :fields, we have to add back in the original fields it would have selected
-            [f] + self.properties(repository.name).defaults
+            [f] 
           end
         end
 
@@ -147,8 +145,8 @@ module DataMapper
         end
 
         def apply_bounds_conditions(conditions, field, bounds)
-          qualified_lat_column = "`#{storage_name}`.`#{field}_lat`"
-          qualified_lng_column = "`#{storage_name}`.`#{field}_lng`"
+          qualified_lat_column = "#{field}_lat"
+          qualified_lng_column = "#{field}_lng"
           sw, ne = bounds.sw, bounds.ne
           lng_sql = bounds.crosses_meridian? ? "(#{qualified_lng_column}<=#{sw.lng} OR #{qualified_lng_column}>=#{ne.lng})" : "#{qualified_lng_column}>=#{sw.lng} AND #{qualified_lng_column}<=#{ne.lng}"
           bounds_sql = "#{qualified_lat_column}>=#{sw.lat} AND #{qualified_lat_column}<=#{ne.lat} AND #{lng_sql}"

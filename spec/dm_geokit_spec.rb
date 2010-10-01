@@ -100,13 +100,6 @@ describe "dm-geokit" do
     Location.count(:address.near => {:origin => 'portland, or', :distance => 5.mi}).should == 2
   end
 
-  it "should include distance field and have a float value" do
-    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.should respond_to(:address_distance)
-    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address_distance.should be_a(Float)
-    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address.should respond_to(:distance)
-    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address.distance.should be_a(Float)
-  end
-
   it "should include distance field that changes with distance" do
     Location.all(:address.near => {:origin => '97211', :distance => 5.mi}).first.address_distance.should_not == Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address_distance
   end
