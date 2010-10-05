@@ -92,8 +92,12 @@ module DataMapper
             distance = v[:distance]
             query[:conditions] = expand_conditions(query[:conditions], "#{sphere_distance_sql(field, origin, distance.measurement)}", distance.to_f)
             query[:conditions] = apply_bounds_conditions(query[:conditions], field, bounds_from_distance(distance.to_f, origin, distance.measurement))
+            
             query[:fields] = expand_fields(query[:fields], field, "#{sphere_distance_sql(field, origin, distance.measurement)}")
+            
             query.delete(k)
+            #puts "#{field}_distance"
+            #query.update("#{field}_distance".to_sym => "#{sphere_distance_sql(field, origin, distance.measurement)} as #{field}_distance")
           end
           query
         end
@@ -132,7 +136,7 @@ module DataMapper
           if fields.is_a?(Array) # user specified fields, just tack this onto the end
             [f] + fields
           else # otherwise since we specify :fields, we have to add back in the original fields it would have selected
-            [f] 
+            [f] + self.properties(repository.name).defaults.reject {|r| r.name == "#{distance_field}_distance".to_sym}
           end
         end
 
