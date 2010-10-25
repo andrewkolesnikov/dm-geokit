@@ -136,7 +136,9 @@ module DataMapper
           if fields.is_a?(Array) # user specified fields, just tack this onto the end
             [f] + fields
           else # otherwise since we specify :fields, we have to add back in the original fields it would have selected
-            [f] + self.properties(repository.name).defaults.reject {|r| r.name == "#{distance_field}_distance".to_sym}
+            defaults = self.properties(repository.name).defaults
+            defaults.delete "#{distance_field}_distance"
+            [f] + defaults
           end
         end
 
