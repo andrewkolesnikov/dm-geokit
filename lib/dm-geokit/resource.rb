@@ -137,7 +137,7 @@ module DataMapper
             [f] + fields
           else # otherwise since we specify :fields, we have to add back in the original fields it would have selected
             defaults = self.properties(repository.name).defaults
-            defaults.delete "#{distance_field}_distance"
+            defaults = defaults.reject{|n| n.name.to_sym == "#{distance_field}_distance".to_sym }
             [f] + defaults
           end
         end
